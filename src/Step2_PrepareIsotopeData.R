@@ -12,20 +12,35 @@ setwd(paste(basedrive,"topohypothesis",sep=""))
 
 load(file="./save/coords.dat",verbose=TRUE)
 
-#Load Snow sampling tool samples
+
+#Load Snow sampling tool samples https://doi.pangaea.de/10.1594/PANGAEA.974749 
 #Samples have 2-10 locations per site and three depths per location
-temp<-read.csv("./data/isotope/KohnenQK_Isotopes_PANGAEA_R_20250120.csv",sep=",",dec=".") %>% mutate(position=Position,name = paste(Site,Site.number,sep="")) %>%
-  select(name,position,d18O)
+
+temp <- read.table("./data/isotope/KohnenQK_Isotopes_R.tab",
+                   skip = 34, header = TRUE, sep = "\t") %>%
+  mutate(
+    depth = Depth.ice.snow..m...top.,
+    d18O = δ18O.H2O....SMOW.,
+    position = Position,
+    site = Site..label.,
+    site.nr = Site..number.,
+    name = paste(site,site.nr,sep=""),
+  ) %>%
+  select(depth, d18O, position, name) 
+
+
+
+
 #First step, summarize across depths to d18O.location
 
 samplingtool <- temp %>%
-    group_by(name,position) %>%
+  group_by(name,position) %>%
   summarise(d18OAvg = mean(d18O,na.rm=TRUE))
 
 
-#Read the Liner data from Hirsch et al., PANGAEA
+#Read the Liner data from Hirsch et al., PANGAEA https://doi.pangaea.de/10.1594/PANGAEA.956273
 temp <- read.table("./data/isotope/2018_Kohnen_isotopes.tab",
-                    skip = 44, header = TRUE, sep = "\t") %>%
+                   skip = 44, header = TRUE, sep = "\t") %>%
   mutate(
     depth = Depth.ice.snow.top..m.,
     d18O = δ18O.H2O....SMOW.,
@@ -75,11 +90,35 @@ data.linerANDremi <- combined  %>%
 data.sde.mean <- mean(data.linerANDremi$d18O.sde)
 data.sd.mean <- mean(data.linerANDremi$d18O.sd)
 
-#Load mean data
+#Load mean data https://doi.pangaea.de/10.1594/PANGAEA.974778
 #Mean data has two replicates of three depths averaged from 10 locations per site
-temp<-read.csv("./data/isotope/KohnenQK_Isotopes_PANGAEA_M_20250120.csv",sep=",",dec=".")
 
-data.mean <- temp %>% mutate(name = paste(Site,Site.number,sep=""))  %>%
+temp <- read.table("./data/isotope/KohnenQK_Isotopes_M.tab",
+                   skip = 34, header = TRUE, sep = "\t") %>%
+  mutate(
+    depth = Depth.ice.snow..m...top.,
+    d18O = δ18O.H2O....SMOW.,
+    position = Position,
+    site = Site..label.,
+    site.nr = Site..number.,
+    repl = Repl,
+    name = paste(site,site.nr,sep="")
+  ) %>%
+  select(depth, d18O, position, name,repl) 
+
+### Check the difference between replicate samples
+data.mean.r <- temp   %>%
+  group_by(name,repl) %>%
+  dplyr::summarise(d18O = mean(d18O,na.rm=TRUE))
+
+r1 <- data.mean.r %>% filter(repl==1)
+r2 <- data.mean.r %>% filter(repl==2)
+
+sqrt(mean((r1$d18O-r2$d18O)^2))
+
+####
+
+data.mean <- temp   %>%
   group_by(name) %>%
   dplyr::summarise(d18O = mean(d18O,na.rm=TRUE),d18O.sde=data.sd.mean/sqrt(10))
 
