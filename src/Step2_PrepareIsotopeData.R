@@ -132,7 +132,7 @@ data.mean <- temp   %>%
 #mean(data.mean$d18O)-mean(data.mean09$d18O) #0.07 permille difference
 
 
-data<-right_join(coord,rbind(data.linerANDremi %>% select(name,d18O,d18O.sde),data.mean),by="name") %>% select(name,lon,lat,slope,slope.mean,slope.sd,altitude,d18O,d18O.sde)
+data<-right_join(coord,rbind(data.linerANDremi %>% select(name,d18O,d18O.sde),data.mean),by="name") %>% select(name,lon,lat,slope,slope.sd,altitude,d18O,d18O.sde,x)
 
 
 save(data,file="./save/data.dat")

@@ -20,6 +20,11 @@ altitude_proxy <- stars::read_stars("./data/topography/REMA_200m_dem_filled.tif"
 temp<-read.csv("./data/coords/Basispositionen_LatLon_WGS 84.csv")
 coord<-tibble(name=temp[,1],lon=temp[,2],lat=temp[,3])
 
+temp<-read.csv("./data/coords/PositionsKm.csv",dec=".",sep=",",skip=0)
+positions <- na.omit(tibble(name=temp[,1],x=temp[,2]))
+
+coord <- coord %>% left_join(positions, by = "name")
+
 lnd_geom  <- st_as_sf(coord, coords = c("lon", "lat"), crs = 4326) %>% st_transform(st_crs(sl_proxy))
 
 coord$slope <- stars::st_extract(sl_proxy, lnd_geom)[[1]] * 1000

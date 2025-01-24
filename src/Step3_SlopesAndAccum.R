@@ -25,8 +25,6 @@ setwd(paste(basedrive,"topohypothesis",sep=""))
 load("./save/data.dat",verbose=TRUE) #Isotope and coordinate data
 
 
-temp<-read.csv("./data/coords/PositionsKm.csv",dec=".",sep=",",skip=0)
-positions <- na.omit(tibble(name=temp[,1],x=temp[,2]))
 
 
 sl_proxy <-  stars::read_stars("./data/topography/slope_250km_5kmTransect_20pts.tif", proxy = T)
@@ -109,7 +107,7 @@ radar <- cbind(radar, extracted_values)
 radar$slope <- radar$slope_250km_5kmTransect_20pts.tif*1000 #Slope im m/km
 
  
-merged<-right_join(positions,data  %>% filter(str_detect(name, "^D\\d+$")) ,by="name") 
+merged<-data  %>% filter(str_detect(name, "^D\\d+$")) 
 
 # Find the closest x in radar for each x in merged and add the corresponding accum
 merged_with_accum <- merged %>%
@@ -131,7 +129,7 @@ rm41 <- function(x) return(rollmean(x,41))
 
 colors <- brewer.pal(4,"Set1")
 colors[1]<-"black"
-ylab.accum = expression("Accumulation [kg" ~ m^-2 ~ a^-1 ~"]")
+ylab.accum = expression("Accumulation [kg" ~ m^-2 ~ yr^-1 ~"]")
 SC=2
 
 
