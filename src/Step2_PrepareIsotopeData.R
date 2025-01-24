@@ -39,6 +39,7 @@ samplingtool <- temp %>%
 
 
 #Read the Liner data from Hirsch et al., PANGAEA https://doi.pangaea.de/10.1594/PANGAEA.956273
+
 temp <- read.table("./data/isotope/2018_Kohnen_isotopes.tab",
                    skip = 44, header = TRUE, sep = "\t") %>%
   mutate(
@@ -82,10 +83,18 @@ combined <- bind_rows(
 
 
 #Second step, take means, standard deviation and N across locations
-data.linerANDremi <- combined  %>%
+
+data.linerANDremi <- combined %>%
   group_by(name) %>%
-  summarise(d18O = mean(d18OAvg, na.rm = TRUE),d18O.sd = sd(d18OAvg,na.rm=TRUE),d18O.n=sum(!is.na(d18OAvg))) %>%
-  mutate(d18O.sde = d18O.sd/sqrt(d18O.n))
+  summarise(
+    d18O = mean(d18OAvg, na.rm = TRUE),
+    d18O.sd = sd(d18OAvg, na.rm = TRUE),
+    d18O.n = sum(!is.na(d18OAvg)),
+    liner.count = sum(type == "liner", na.rm = TRUE), # Count 'liner' type samples
+    samplingtool.count = sum(type == "samplingtool", na.rm = TRUE) # Count 'samplingtool' type samples
+  ) %>%
+  mutate(d18O.sde = d18O.sd / sqrt(d18O.n))
+
 
 data.sde.mean <- mean(data.linerANDremi$d18O.sde)
 data.sd.mean <- mean(data.linerANDremi$d18O.sd)
@@ -120,7 +129,7 @@ sqrt(mean((r1$d18O-r2$d18O)^2))
 
 data.mean <- temp   %>%
   group_by(name) %>%
-  dplyr::summarise(d18O = mean(d18O,na.rm=TRUE),d18O.sde=data.sd.mean/sqrt(10))
+  dplyr::summarise(d18O = mean(d18O,na.rm=TRUE),d18O.sde=data.sd.mean/10) %>% mutate(mean.count=10)
 
 #Sensitivity test of using 0.9 instead of 1.2m
 #data.mean09 <- temp %>% filter(depth.bottom <= 0.9) %>% mutate(name = paste(Site,Site.number,sep=""))  %>%
@@ -131,8 +140,15 @@ data.mean <- temp   %>%
 #t.test(data.mean$d18O,data.mean09$d18O)
 #mean(data.mean$d18O)-mean(data.mean09$d18O) #0.07 permille difference
 
+temp <- bind_rows(data.linerANDremi %>% select(name,d18O,d18O.sde,d18O.sd,liner.count,samplingtool.count),data.mean)
 
-data<-right_join(coord,rbind(data.linerANDremi %>% select(name,d18O,d18O.sde),data.mean),by="name") %>% select(name,lon,lat,slope,slope.sd,altitude,d18O,d18O.sde,x)
+data<-right_join(coord,temp,by="name") %>% select(name,lon,lat,slope,slope.sd,altitude,d18O,d18O.sd,d18O.sde,x,liner.count,mean.count,samplingtool.count)
 
+data <- data %>%
+  mutate(
+    liner.count = replace_na(liner.count, 0),
+    mean.count = replace_na(mean.count, 0),
+    samplingtool.count = replace_na(samplingtool.count, 0)
+  )
 
 save(data,file="./save/data.dat")
