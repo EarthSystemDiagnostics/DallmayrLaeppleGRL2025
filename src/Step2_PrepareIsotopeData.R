@@ -129,7 +129,7 @@ sqrt(mean((r1$d18O-r2$d18O)^2))
 
 data.mean <- temp   %>%
   group_by(name) %>%
-  dplyr::summarise(d18O = mean(d18O,na.rm=TRUE),d18O.sde=data.sd.mean/10) %>% mutate(mean.count=10)
+  dplyr::summarise(d18O = mean(d18O,na.rm=TRUE),d18O.sde=data.sd.mean/sqrt(10)) %>% mutate(mean.count=10)
 
 #Sensitivity test of using 0.9 instead of 1.2m
 #data.mean09 <- temp %>% filter(depth.bottom <= 0.9) %>% mutate(name = paste(Site,Site.number,sep=""))  %>%
