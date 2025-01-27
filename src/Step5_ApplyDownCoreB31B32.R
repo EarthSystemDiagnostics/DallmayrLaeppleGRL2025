@@ -305,10 +305,9 @@ dev.off()
 ##### Now for accumulation
 
 
-#0.5 permille pro m/km slope.  5.6 kg/m^2 per 0.5 permille; 11 kg/m^2 per permille; Bei 5 grad erwärmung, Verdopplung
 
-b31.correct.accum<-Translate2Climate(b31.upstream,slope2climate=c(-6,-5.6,-5.2))
-b32.correct.accum<-Translate2Climate(b32.upstream,slope2climate=c(-6,-5.6,-5.2))
+b31.correct.accum<-Translate2Climate(b31.upstream,slope2climate=c(-5.68,-5.6,-5.52))
+b32.correct.accum<-Translate2Climate(b32.upstream,slope2climate=c(-5.68,-5.6,-5.52))
 
 pdf(file = "./plots/SI_Figure_right.accum.pdf", width = 3.75*SC, height = 4.2*SC)
 
@@ -318,7 +317,7 @@ par(mai=c(0.8,1,0.8,0.8))
 
 
 accum.obs <- b31.accum
-accum.obs.pTs <- pTs(rev(c(accum.obs)),rev(2000-c(time(accum.obs))))
+accum.obs.pTs <- ts(rev(c(accum.obs)), start=rev(1950 - c(time(accum.obs)))[1])
 plot(sr(accum.obs.pTs),main="B31",ylab = ylab.accum,xlab=xlab.time,col=colors[1],xlim=c(0, 3000))
 lines(sr(b31.correct.accum$y),col=colors[[3]],lwd=2)
 
@@ -331,7 +330,7 @@ polygon(c((b31.correct.accum$x), rev((b31.correct.accum$x))),
 
 
 accum.obs <- b32.accum
-accum.obs.pTs <- pTs(rev(c(accum.obs)),rev(2000-c(time(accum.obs))))
+accum.obs.pTs <- ts(rev(c(accum.obs)), start=rev(1950 - c(time(accum.obs)))[1])
 plot(sr(accum.obs.pTs),main="B32",ylab=ylab.accum,xlab=xlab.time,col=colors[1],xlim=c(0, 3000))
 lines(sr(b32.correct.accum$y),lwd=2,col=colors[3])
 
