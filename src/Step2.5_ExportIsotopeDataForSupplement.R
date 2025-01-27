@@ -1,7 +1,4 @@
-#Table 1: Sample label, longitude, latitude,  for samples on the main track, Kilometers from B31, Elevation, Slope, Slope SE
-
-
-
+#Code to create the table for the supplements
 library(dplyr)
 
 
@@ -28,21 +25,53 @@ ft <- ft %>%
     name = "Site Name",
     lon = "Longitude (degE)",
     lat = "Latitude (degN)",
-    distance = "Distance from B31 (km)",
+    distance = "Distance from B31 (km)*",
     altitude = "Elevation (masl)",
     slope = "Slope (m/km)",
-    slope.sd = "SE Slope (m/km)"
+    slope.sd = "sd Slope (m/km)"
+  ) %>%
+  
+  autofit() %>%  # 
+  theme_vanilla()  %>%
+  set_table_properties(width = 0.8, layout = "autofit")  
+
+### Second table
+
+
+
+
+dataForTable <- data  %>%
+  mutate(distance = x)  %>% mutate(
+    d18O.sd = sprintf("%.2f", d18O.sd),
+    d18O.sde = sprintf("%.2f", d18O.sde),
+    d18O = sprintf("%.2f", d18O),
+  ) %>% select(name,d18O,d18O.sd,d18O.sde,samplingtool.count,mean.count,liner.count) 
+
+
+
+# Convert tibble to a flextable
+ft2 <- flextable(dataForTable)
+
+
+ylab.d18O <- expression(delta^{18}*O~"["*"\u2030"*"]")
+
+
+ft2 <- ft2 %>%
+  set_header_labels(
+    name = "Site Name",
+    d18O = "mean d18O (‰)",
+    d18O.sd = "sd d18O (‰)*",
+    d18O.sde = "se d18O (‰)**",
+    samplingtool.count = "#R samples",
+    mean.count = "#M samples",
+    liner.count = "#L samples"
+
   ) %>%
   
   autofit() %>%  # Automatically adjust column widths
-  theme_vanilla()  # Apply a nice pre-defined theme
+  theme_vanilla() %>%  
+ set_table_properties(width = 0.8, layout = "autofit")  # Scale the table to 100% of the page width
 
-# View the table in RStudio Viewer (optional)
-ft
-
-
-ft <- ft %>%
-  set_table_properties(width = 1, layout = "autofit")  # Scale the table to 100% of the page width
 
 # Create a Word document
 doc <- read_docx()
@@ -52,14 +81,13 @@ doc <- doc %>%
   body_add_flextable(ft) %>%
   body_add_par("")  # Add an empty paragraph for spacing
 
+
+# Add the table to the document
+doc <- doc %>%
+  body_add_flextable(ft2) %>%
+  body_add_par("")  # Add an empty paragraph for spacing
+ 
+
 # Save the Word document
 print(doc, target = "table_output.docx")
-
-
-### Second table
-
-
-
-#Table 1:
-Sample Label, #Snow sampling tool samples #Mean samples #Liner #Total Nr. #d18O, d18O sd, d18O se
 
